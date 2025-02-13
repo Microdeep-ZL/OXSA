@@ -1,4 +1,3 @@
-% testAMARES.m
 ver
 run('../startup.m')
 
@@ -11,7 +10,7 @@ fid=exp(-timeAxis/T2star+1i*2*pi*larmor_frq*timeAxis);
 
 
 exptParams.samples=N;
-exptParams.imagingFrequency=larmor_frq*1e-6;
+exptParams.imagingFrequency=1; % 1ppm = 1Hz
 exptParams.timeAxis=timeAxis;
 exptParams.dwellTime=dwellTime;
 exptParams.ppmAxis=((0:N-1)-floor(N/2))/dwellTime/N; % 1ppm = 1Hz
@@ -28,7 +27,7 @@ disp("second attempt with `fid.'`")
 size_fid=size(fid)
 
 %% output
-% >> test_issue4                       
+% >> test_issue4
 % -----------------------------------------------------------------------------------------------------
 % MATLAB Version: 9.2.0.1226206 (R2017a) Update 4
 % MATLAB License Number: 40482169
@@ -76,10 +75,10 @@ size_fid=size(fid)
 %     'chemShiftDelta'    '[]'        
 %     'amplitudeRatio'    '[]'        
 % first attempt with `fid`
-% Iterations = 20.
-% Norm of residual = 74.501
+% Iterations = 80.
+% Norm of residual = 0.000
 % Norm of the data = 75.501
-% resNormSq / dataNormSq = 0.987
+% resNormSq / dataNormSq = 0.000
 % CRBs not calculated, add optional 4th output argument to call to calculate.
 % zeroOrderPhaseRad = 0.000
 % size_xAxis =
@@ -98,4 +97,4 @@ size_fid=size(fid)
 % Error in AMARES.amaresFit (line 61)
 % [pkWithLinLsq,pkWithLinLsq_orig_phase]= AMARES.initializePriorKnowledge(pk, exptParams, inputFid);
 % Error in test_issue4 (line 27)
-% [results, status]=AMARES.amaresFit(fid, exptParams, pk, showPlot);
+% [results, status]=AMARES.amaresFit(fid, exptParams, pk, showPlot); 
