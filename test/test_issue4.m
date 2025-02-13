@@ -1,88 +1,101 @@
 % testAMARES.m
+ver
+run('../startup.m')
 
-run('../startup')
+N=1024;
+dwellTime=0.002; % in seconds
+timeAxis=(0:N-1)*dwellTime;
+T2star=0.3; % in seconds
+larmor_frq=200; % in Hz
+fid=exp(-timeAxis/T2star+1i*2*pi*larmor_frq*timeAxis);
 
-params.M0=12;
-params.T2star=1/40;
-params.v0=0;
-params.phi=pi;
-params.noise_sigma=0.002;
 
-params.N=400;
-params.fs=1000;
-params.f0=0;
-params.t0=0;
+exptParams.samples=N;
+exptParams.imagingFrequency=larmor_frq*1e-6;
+exptParams.timeAxis=timeAxis;
+exptParams.dwellTime=dwellTime;
+exptParams.ppmAxis=((0:N-1)-floor(N/2))/dwellTime/N; % 1ppm = 1Hz
+exptParams.offset=200;
+exptParams.beginTime=0;
 
-data=synthesizeData(params);
-
-spec.signals={data.fid.'};
-spec.dwellTime=1/data.fs;
-spec.samples=data.N;
-spec.ppmAxis=((0:data.N-1)-floor(data.N/2))*data.fs/data.N;
-spec.timeAxis=(0:data.N-1)*spec.dwellTime;
-spec.imagingFrequency=data.f0;
-
-instanceNum=1;
-voxelNum=1;
-beginTime=data.t0;
-expOffset=params.v0;
 pk=AMARES.priorKnowledge.PK_SinglePeak;
-showPlot=false;
+showPlot=2;
+disp("first attempt with `fid`")
+[results, status]=AMARES.amaresFit(fid.', exptParams, pk, showPlot);
+size_fid=size(fid.')
+disp("second attempt with `fid.'`")
+[results, status]=AMARES.amaresFit(fid, exptParams, pk, showPlot);
+size_fid=size(fid)
 
-results=AMARES.amares(spec, instanceNum ,voxelNum, beginTime, expOffset, pk,showPlot)
+%% output
+% >> test_issue4                       
+% -----------------------------------------------------------------------------------------------------
+% MATLAB Version: 9.2.0.1226206 (R2017a) Update 4
+% MATLAB License Number: 40482169
+% Operating System: Linux 5.15.0-119-generic #129~20.04.1-Ubuntu SMP Wed Aug 7 13:07:13 UTC 2024 x86_64
+% Java Version: Java 1.7.0_60-b19 with Oracle Corporation Java HotSpot(TM) 64-Bit Server VM mixed mode
+% -----------------------------------------------------------------------------------------------------
+% MATLAB                                                Version 9.2         (R2017a)
+% Curve Fitting Toolbox                                 Version 3.5.5       (R2017a)
+% Image Processing Toolbox                              Version 10.0        (R2017a)
+% Optimization Toolbox                                  Version 7.6         (R2017a)
+% Parallel Computing Toolbox                            Version 6.10        (R2017a)
+% Signal Processing Toolbox                             Version 7.4         (R2017a)
+% Statistics and Machine Learning Toolbox               Version 11.1        (R2017a)
+% Wavelet Toolbox                                       Version 4.18        (R2017a)
+% Wiping the Matlab path...
+% OXSA version 2.1: completed startup.m
 
-function data=synthesizeData(params)
-    % params is a struct with the following fields
-    %   (1) these parameters can be arrays, if they are not of the same length, anything longer than the smallest length will be dropped
-    %   M0, magnetization at t=0
-    %   T2star, in seconds
-    %   v0, Larmor frequency, in Hz
-    %   
-    %   (2) these parameters must not be arrays
-    %   phi, initial phase, in rad, within [-pi, pi]
-    %   noise_sigma, the noise follows N(0, sigma^2)
-    % 
-    %   (3) these parameters are also present in the returned struct
-    %   N, number of sampling points
-    %   fs, sampling rate, in Hz
-    %   f0, excitation frequency, in Hz
-    %   t0, also known as beginTime, the time interval between when FID acquisition starts and when excitation finishes, in seconds
-    % 
-    % data is a struct with the following fields
-    %   fid, shape (1,N)
-    %   N, same as above
-    %   fs, same as above
-    %   f0, same as above
-    %   t0, same as above
-    
-    len=min([
-        numel(params.M0)
-        numel(params.T2star)
-        numel(params.v0)
-        ]);
-    N=params.N;
-    fs=params.fs;
-    fid_array=zeros(len,N);
-    t=(0:N-1)/fs+params.t0;
-    for i=1:len
-        M0=params.M0(i);
-        T2star=params.T2star(i);
-        w0=2*pi*(params.v0(i)-params.f0);
-        fid_array(i,:)=M0*exp(-t/T2star).*exp(1i*(w0*t+params.phi));
-    end
-    noise=(randn(1,N)+randn(1,N)*1i)*params.noise_sigma;
-    data.fid=sum(fid_array,1)+noise;
-    data.N=N;
-    data.fs=fs;
-    data.f0=params.f0;
-    data.t0=params.t0;
-    
-    Tacq=N/fs;
-    if Tacq<3*max(params.T2star(1:len))
-        disp("Warning: truncation artifact, total acquisition time is shorter than 3 times maximum T2*")
-    end
-    
-    if fs<2*max(abs(params.v0(1:len)-params.f0))
-        disp("Warning: undersampling, sampling rate is smaller than twice (the fastest Larmor frequency minus excitation frequency)")
-    end
-end
+%          initial values for 1 peaks
+
+%     'peakName'     'Peak1'
+%     'chemShift'    '[0]'  
+%     'linewidth'    '[11]' 
+%     'amplitude'    '[0.9]'
+%     'phase'        '[0]'  
+
+%          prior knowledge for 1 peaks
+
+%     'peakName'            'Peak1'
+%     'multiplet'           '[]'   
+%     'chemShiftDelta'      '[]'   
+%     'amplitudeRatio'      '[]'   
+%     'G_linewidth'         '[]'   
+%     'G_amplitude'         '[]'   
+%     'G_phase'             '[]'   
+%     'G_chemShiftDelta'    '[]'   
+%     'refPeak'             '[0]'  
+
+%          upper and lower bounds for 1 peaks
+
+%     'peakName'          'Peak1'     
+%     'chemShift'         '[-Inf Inf]'
+%     'linewidth'         '[0 Inf]'   
+%     'amplitude'         '[0 Inf]'   
+%     'phase'             '[0 360]'   
+%     'chemShiftDelta'    '[]'        
+%     'amplitudeRatio'    '[]'        
+% first attempt with `fid`
+% Iterations = 20.
+% Norm of residual = 74.501
+% Norm of the data = 75.501
+% resNormSq / dataNormSq = 0.987
+% CRBs not calculated, add optional 4th output argument to call to calculate.
+% zeroOrderPhaseRad = 0.000
+% size_xAxis =
+%            1        1024
+% size_std_residual =
+%            1        1024
+% size_residual =
+%         1024        1024
+% size_fid =
+%         1024           1
+% second attempt with `fid.'`
+% Error using \
+% Matrix dimensions must agree.
+% Error in AMARES.initializePriorKnowledge (line 38)
+% linearFit = FIDmatrix \ inputFid;
+% Error in AMARES.amaresFit (line 61)
+% [pkWithLinLsq,pkWithLinLsq_orig_phase]= AMARES.initializePriorKnowledge(pk, exptParams, inputFid);
+% Error in test_issue4 (line 27)
+% [results, status]=AMARES.amaresFit(fid, exptParams, pk, showPlot);

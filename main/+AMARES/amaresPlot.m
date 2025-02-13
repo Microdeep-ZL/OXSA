@@ -197,8 +197,11 @@ if ~isfield(options,'plotResidual') || options.plotResidual % Default on.
     hold on
     plot(xAxis,zeros(size(residual)),'r--')
     
-    plot(xAxis,repmat(+std(residual),size(residual)),'r:')
-    plot(xAxis,repmat(-std(residual),size(residual)),'r:')
+    size_xAxis=size(xAxis)
+    size_std_residual=size(std(residual))
+    size_residual=size(residual)
+    % plot(xAxis,repmat(+std(residual),size(residual)),'r:')
+    % plot(xAxis,repmat(-std(residual),size(residual)),'r:')
     
     set(gca,'XDir','reverse')
     ylabel('Residual')
